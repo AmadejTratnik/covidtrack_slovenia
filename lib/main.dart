@@ -1,113 +1,147 @@
+import 'dart:ui';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'API.dart';
+import 'Podatki.dart';
 
-void main() {
-  runApp(MyApp());
-}
+bool _isInitialized = false;
+
+void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
+  build(context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      title: 'Covid-19 sledilnik',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+        primaryColor: Colors.white,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: PrvaStran(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class PrvaStran extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State<StatefulWidget> createState() => _PodatkiState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _PodatkiState extends State {
+  // ignore: deprecated_member_use
+  var podatki = new List<Podatek>();
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+  Future<void> _getStats() async {
+    API.getStats().then((response) {
+      setState(() {
+        Iterable list = json.decode(response.body);
+        podatki = list.map((model) => Podatek.fromJson(model)).toList();
+        if (podatki != null || podatki.length != 0) {
+          podatki.removeLast();
+        }
+        _isInitialized = true;
+      });
     });
   }
 
+  initState() {
+    super.initState();
+    _getStats();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+    if (_isInitialized) {
+      int dan = podatki.last.day;
+      int mesec = podatki.last.month;
+      int leto = podatki.last.year;
+      String datum =
+          dan.toString() + '.' + mesec.toString() + '.' + leto.toString();
+      return new Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          title: new Text(
+            'Podatki veljajo za dan: $datum',
+            style: TextStyle(color: Colors.black),
+          ),
+          backgroundColor: Colors.white,
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+        backgroundColor: Colors.white,
+        body: _listIzKartic(podatki),
+      );
+    } else {
+      return new Scaffold(
+          backgroundColor: Colors.white,
+          body: Center(
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Nalaganje podatkov...'),
+                  CircularProgressIndicator()
+                ]),
+          ));
+    }
   }
 }
+
+Widget _listIzKartic(List<Podatek> podatki) => ListView(children: [
+      _kartica('Dnevno število testiranj:', podatki.last.performedTests,
+          Colors.green),
+      _kartica(
+          'Dnevno število pozitivnih:', podatki.last.positiveTests, Colors.red),
+      _kartica(
+          'Dnevno število umrlih oseb:', podatki.last.deceased, Colors.black),
+      _kartica('Skupno število hospitaliziranih oseb na posamezen dan:',
+          podatki.last.inHospital, Colors.blue),
+      _kartica('Skupno število oseb na intenzivni negi na posamezen dan:',
+          podatki.last.inICU, Colors.yellow[800]),
+      _kartica('Dnevno število odpuščenih oseb iz bolnišnice:',
+          podatki.last.outOfHospital, Colors.pink[800]),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text("Posodobljeno: " + getDate()),
+        ],
+      )
+    ]);
+
+String getDate() {
+  var now = new DateTime.now();
+  var nicla = "";
+  if (now.minute < 10) {
+    nicla = "0";
+  }
+  return now.day.toString() +
+      "." +
+      now.month.toString() +
+      "." +
+      now.year.toString() +
+      ", " +
+      now.hour.toString() +
+      ":" +
+      nicla +
+      now.minute.toString();
+}
+
+Widget _kartica(String naslov, int stevilo, Color barva) => Card(
+      elevation: 3,
+      child: Column(children: [
+        Align(
+          child: Text(
+            naslov,
+            style: TextStyle(fontSize: 20, color: barva),
+          ),
+        ),
+        Align(
+          child: Text(stevilo.toString(),
+              style: TextStyle(fontSize: 35, color: barva)),
+        )
+      ]),
+    );
