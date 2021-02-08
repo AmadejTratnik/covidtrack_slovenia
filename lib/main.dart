@@ -91,7 +91,7 @@ class _PodatkiState extends State {
 
 Widget _listIzKartic(List<Podatek> podatki) => ListView(children: [
       _kartica('Dnevno število testiranj PCR:', podatki.last.performedTests,
-          Colors.green),
+          Colors.green,),
       _kartica('Dnevno število potrjenih primerov:', podatki.last.positiveTests,
           Colors.red),
       _kartica(
@@ -100,7 +100,7 @@ Widget _listIzKartic(List<Podatek> podatki) => ListView(children: [
           podatki.last.inHospital, Colors.blue),
       _kartica('Skupno število oseb na intenzivni negi na posamezen dan:',
           podatki.last.inICU, Colors.yellow[800]),
-      _kartica('Dnevno število odpuščenih oseb iz bolnišnice:',
+      _kartica('Dnevno š<tevilo odpuščenih oseb iz bolnišnice:',
           podatki.last.outOfHospital, Colors.pink[800]),
       _kartica(
           'Povprečje potrjenih primerov v zadnjih 7 dneh:', get_seven_days_mean(podatki), Colors.teal),
@@ -147,7 +147,12 @@ String getDate() {
       now.minute.toString();
 }
 
-Widget _kartica(String naslov, int stevilo, Color barva) => Card(
+Widget _kartica(String naslov, int stevilo, Color barva) => GestureDetector(
+  onTap: (){
+    print(naslov);
+  },
+  child:Card(
+      
       elevation: 3,
       child: Column(children: [
         Align(
@@ -161,4 +166,6 @@ Widget _kartica(String naslov, int stevilo, Color barva) => Card(
               style: TextStyle(fontSize: 35, color: barva)),
         )
       ]),
-    );
+    )
+);
+
