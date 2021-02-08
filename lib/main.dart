@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   build(context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: true,
       title: 'Covid-19 sledilnik',
       theme: ThemeData(
         primaryColor: Colors.white,
@@ -90,10 +90,10 @@ class _PodatkiState extends State {
 }
 
 Widget _listIzKartic(List<Podatek> podatki) => ListView(children: [
-      _kartica('Dnevno število testiranj:', podatki.last.performedTests,
+      _kartica('Dnevno število testiranj PCR:', podatki.last.performedTests,
           Colors.green),
-      _kartica(
-          'Dnevno število pozitivnih:', podatki.last.positiveTests, Colors.red),
+      _kartica('Dnevno število potrjenih primerov:', podatki.last.positiveTests,
+          Colors.red),
       _kartica(
           'Dnevno število umrlih oseb:', podatki.last.deceased, Colors.black),
       _kartica('Skupno število hospitaliziranih oseb na posamezen dan:',
@@ -102,6 +102,8 @@ Widget _listIzKartic(List<Podatek> podatki) => ListView(children: [
           podatki.last.inICU, Colors.yellow[800]),
       _kartica('Dnevno število odpuščenih oseb iz bolnišnice:',
           podatki.last.outOfHospital, Colors.pink[800]),
+      _kartica(
+          'Povprečje potrjenih primerov v zadnjih 7 dneh:', get_seven_days_mean(podatki), Colors.teal),
       Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.max,
@@ -109,8 +111,23 @@ Widget _listIzKartic(List<Podatek> podatki) => ListView(children: [
         children: [
           Text("Posodobljeno: " + getDate()),
         ],
-      )
+      ),
     ]);
+
+int get_seven_days_mean(List<Podatek> podatki) {
+  if(_isInitialized){
+    if(podatki.length < 8){
+      return podatki.last.positiveTests;
+    }
+    int mean = 0;
+    for(int i = podatki.length-1; i > podatki.length - 8; i--){
+      mean+=podatki.elementAt(i).positiveTests;
+    }
+    return (mean/7).toInt();
+  }else{
+    return 0;
+  }
+}
 
 String getDate() {
   var now = new DateTime.now();

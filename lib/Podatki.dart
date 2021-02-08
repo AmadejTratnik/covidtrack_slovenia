@@ -27,7 +27,7 @@ class Podatek {
         month = json['month'],
         year = json['year'],
         performedTests = json['performedTests'],
-        positiveTests = json['positiveTests'],
+        positiveTests = json['cases']['confirmedToday'],
         deceased = json['statePerTreatment']['deceased'],
         inHospital = json['statePerTreatment']['inHospital'],
         inICU = json['statePerTreatment']['inICU'],
