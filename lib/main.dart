@@ -123,7 +123,7 @@ int get_seven_days_mean(List<Podatek> podatki) {
     for(int i = podatki.length-1; i > podatki.length - 8; i--){
       mean+=podatki.elementAt(i).positiveTests;
     }
-    return (mean/7).toInt();
+    return mean ~/ 7;
   }else{
     return 0;
   }
