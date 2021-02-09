@@ -72,7 +72,7 @@ class _PodatkiState extends State {
           backgroundColor: Colors.white,
         ),
         backgroundColor: Colors.white,
-        body: _listIzKartic(podatki),
+        body: _listIzKartic(podatki, context),
       );
     } else {
       return new Scaffold(
@@ -89,21 +89,22 @@ class _PodatkiState extends State {
   }
 }
 
-Widget _listIzKartic(List<Podatek> podatki) => ListView(children: [
+Widget _listIzKartic(List<Podatek> podatki, BuildContext context) =>
+    ListView(children: [
       _kartica('Dnevno število testiranj PCR:', podatki.last.performedTests,
-          Colors.green,),
+          Colors.green, context),
       _kartica('Dnevno število potrjenih primerov:', podatki.last.positiveTests,
-          Colors.red),
+          Colors.red, context),
       _kartica(
-          'Dnevno število umrlih oseb:', podatki.last.deceased, Colors.black),
+          'Dnevno število umrlih oseb:', podatki.last.deceased, Colors.black,context),
       _kartica('Skupno število hospitaliziranih oseb na posamezen dan:',
-          podatki.last.inHospital, Colors.blue),
+          podatki.last.inHospital, Colors.blue, context),
       _kartica('Skupno število oseb na intenzivni negi na posamezen dan:',
-          podatki.last.inICU, Colors.yellow[800]),
-      _kartica('Dnevno š<tevilo odpuščenih oseb iz bolnišnice:',
-          podatki.last.outOfHospital, Colors.pink[800]),
-      _kartica(
-          'Povprečje potrjenih primerov v zadnjih 7 dneh:', get_seven_days_mean(podatki), Colors.teal),
+          podatki.last.inICU, Colors.yellow[800], context),
+      _kartica('Dnevno število odpuščenih oseb iz bolnišnice:',
+          podatki.last.outOfHospital, Colors.pink[800], context),
+      _kartica('Povprečje potrjenih primerov v zadnjih 7 dneh:',
+          get_seven_days_mean(podatki), Colors.teal, context),
       Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.max,
@@ -115,16 +116,16 @@ Widget _listIzKartic(List<Podatek> podatki) => ListView(children: [
     ]);
 
 int get_seven_days_mean(List<Podatek> podatki) {
-  if(_isInitialized){
-    if(podatki.length < 8){
+  if (_isInitialized) {
+    if (podatki.length < 8) {
       return podatki.last.positiveTests;
     }
     int mean = 0;
-    for(int i = podatki.length-1; i > podatki.length - 8; i--){
-      mean+=podatki.elementAt(i).positiveTests;
+    for (int i = podatki.length - 1; i > podatki.length - 8; i--) {
+      mean += podatki.elementAt(i).positiveTests;
     }
     return mean ~/ 7;
-  }else{
+  } else {
     return 0;
   }
 }
@@ -147,25 +148,47 @@ String getDate() {
       now.minute.toString();
 }
 
-Widget _kartica(String naslov, int stevilo, Color barva) => GestureDetector(
-  onTap: (){
-    print(naslov);
-  },
-  child:Card(
-      
-      elevation: 3,
-      child: Column(children: [
-        Align(
-          child: Text(
-            naslov,
-            style: TextStyle(fontSize: 20, color: barva),
-          ),
-        ),
-        Align(
-          child: Text(stevilo.toString(),
-              style: TextStyle(fontSize: 35, color: barva)),
-        )
-      ]),
-    )
-);
-
+Widget _kartica(
+        String naslov, int stevilo, Color barva, BuildContext context) =>
+    InkWell(
+        onTap: () {
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  content: Stack(
+                    overflow: Overflow.visible,
+                    children: <Widget>[
+                      Positioned(
+                        right: -40.0,
+                        top: -40.0,
+                        child: InkResponse(
+                          onTap: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: CircleAvatar(
+                            child: Icon(Icons.close),
+                            backgroundColor: Colors.red,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              });
+        },
+        child: Card(
+          elevation: 4,
+          child: Column(children: [
+            Align(
+              child: Text(
+                naslov,
+                style: TextStyle(fontSize: 20, color: barva),
+              ),
+            ),
+            Align(
+              child: Text(stevilo.toString(),
+                  style: TextStyle(fontSize: 35, color: barva)),
+            )
+          ]),
+        ));
