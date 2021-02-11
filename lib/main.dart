@@ -1,8 +1,10 @@
 import 'dart:ui';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 import 'API.dart';
 import 'Podatki.dart';
+import 'package:syncfusion_flutter_charts/sparkcharts.dart';
 
 bool _isInitialized = false;
 
@@ -91,20 +93,20 @@ class _PodatkiState extends State {
 
 Widget _listIzKartic(List<Podatek> podatki, BuildContext context) =>
     ListView(children: [
-      _kartica('Dnevno število testiranj PCR:', podatki.last.performedTests,
+      _kartica('Dnevno število testiranj PCR:', getPerformedTests(podatki),
           Colors.green, context),
-      _kartica('Dnevno število potrjenih primerov:', podatki.last.positiveTests,
+      _kartica('Dnevno število potrjenih primerov:', getPositiveTests(podatki),
           Colors.red, context),
-      _kartica(
-          'Dnevno število umrlih oseb:', podatki.last.deceased, Colors.black,context),
+      _kartica('Dnevno število umrlih oseb:', getDeceased(podatki),
+          Colors.black, context),
       _kartica('Skupno število hospitaliziranih oseb na posamezen dan:',
-          podatki.last.inHospital, Colors.blue, context),
+          getInHospital(podatki), Colors.blue, context),
       _kartica('Skupno število oseb na intenzivni negi na posamezen dan:',
-          podatki.last.inICU, Colors.yellow[800], context),
+          getInICU(podatki), Colors.yellow[800], context),
       _kartica('Dnevno število odpuščenih oseb iz bolnišnice:',
-          podatki.last.outOfHospital, Colors.pink[800], context),
+          getOutOfHospital(podatki), Colors.pink[800], context),
       _kartica('Povprečje potrjenih primerov v zadnjih 7 dneh:',
-          get_seven_days_mean(podatki), Colors.teal, context),
+          get7DaysMean(podatki), Colors.teal, context),
       Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.max,
@@ -115,14 +117,50 @@ Widget _listIzKartic(List<Podatek> podatki, BuildContext context) =>
       ),
     ]);
 
-int get_seven_days_mean(List<Podatek> podatki) {
+Iterable<int> getPerformedTests(List<Podatek> podatki){
+  var result = podatki.map((podatki) => podatki.performedTests);
+  return result;
+}
+Iterable<int> getPositiveTests(List<Podatek> podatki){
+  var result = podatki.map((podatki) => podatki.positiveTests);
+  return result;
+}
+Iterable<int> getDeceased(List<Podatek> podatki){
+  var result = podatki.map((podatki) => podatki.deceased);
+  return result;
+}
+Iterable<int> getInHospital(List<Podatek> podatki){
+  var result = podatki.map((podatki) => podatki.inHospital);
+  return result;
+}
+Iterable<int> getInICU(List<Podatek> podatki){
+  var result = podatki.map((podatki) => podatki.inICU);
+  return result;
+}
+
+Iterable<int> getOutOfHospital(List<Podatek> podatki){
+  var result = podatki.map((podatki) => podatki.outOfHospital);
+  return result;
+}
+
+Iterable<int> get7DaysMean(List<Podatek> podatki){
+  //TODO: to popravi!!!
+  var result = podatki.map((podatki) => podatki.positiveTests);
+  var finalList = [];
+  for(int i  = 0; i < result.length; i++){
+    finalList.add(get_seven_days_mean(result,i));
+  }
+  return Iterable.castFrom(finalList);
+}
+
+int get_seven_days_mean(List<int> podatki,int indeks) {
   if (_isInitialized) {
-    if (podatki.length < 8) {
-      return podatki.last.positiveTests;
+    if (indeks < 8) {
+      return podatki.elementAt(indeks);
     }
     int mean = 0;
-    for (int i = podatki.length - 1; i > podatki.length - 8; i--) {
-      mean += podatki.elementAt(i).positiveTests;
+    for (int i = podatki.elementAt(indeks) - 1; i > podatki.elementAt(indeks) - 8; i--) {
+      mean += podatki.elementAt(i);
     }
     return mean ~/ 7;
   } else {
@@ -149,33 +187,40 @@ String getDate() {
 }
 
 Widget _kartica(
-        String naslov, int stevilo, Color barva, BuildContext context) =>
+        String naslov, Iterable<int> podatki, Color barva, BuildContext context) =>
     InkWell(
         onTap: () {
-          showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  content: Stack(
-                    overflow: Overflow.visible,
-                    children: <Widget>[
-                      Positioned(
-                        right: -40.0,
-                        top: -40.0,
-                        child: InkResponse(
-                          onTap: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: CircleAvatar(
-                            child: Icon(Icons.close),
-                            backgroundColor: Colors.red,
-                          ),
-                        ),
+          showGeneralDialog(
+            context: context,
+            barrierLabel: "Hello there",
+            barrierDismissible: true,
+            transitionBuilder: _buildNewTransition,
+            transitionDuration: Duration(milliseconds: 400), //This is time
+            barrierColor:
+                Colors.black.withOpacity(0.3), // Add this property is color
+            pageBuilder: (BuildContext context, Animation animation,
+                Animation secondaryAnimation) {
+              return Center(
+                child: Material(
+                  child: Container(
+                    color: Colors.black.withOpacity(animation.value),
+                    child: Container(
+                      width: MediaQuery.of(context).size.width-10,
+                      height: MediaQuery.of(context).size.height/2,
+                      child: Column(
+                        children: [
+                          SfSparkAreaChart(
+                            color: barva,
+                            data: podatki.toList(),
+                          )
+                        ],
                       ),
-                    ],
+                      )
+                    )
                   ),
-                );
-              });
+              );
+            },
+          );
         },
         child: Card(
           elevation: 4,
@@ -187,8 +232,24 @@ Widget _kartica(
               ),
             ),
             Align(
-              child: Text(stevilo.toString(),
+              child: Text(podatki.last.toString(),
                   style: TextStyle(fontSize: 35, color: barva)),
             )
           ]),
         ));
+
+Widget _buildNewTransition(
+  BuildContext context,
+  Animation<double> animation,
+  Animation<double> secondaryAnimation,
+  Widget child,
+) {
+  return ScaleTransition(
+    scale: CurvedAnimation(
+      parent: animation,
+      curve: Curves.linear,
+      reverseCurve: Curves.fastOutSlowIn,
+    ),
+    child: child,
+  );
+}
