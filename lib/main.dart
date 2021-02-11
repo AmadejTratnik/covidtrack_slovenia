@@ -117,49 +117,56 @@ Widget _listIzKartic(List<Podatek> podatki, BuildContext context) =>
       ),
     ]);
 
-Iterable<int> getPerformedTests(List<Podatek> podatki){
+Iterable<int> getPerformedTests(List<Podatek> podatki) {
   var result = podatki.map((podatki) => podatki.performedTests);
   return result;
 }
-Iterable<int> getPositiveTests(List<Podatek> podatki){
+
+Iterable<int> getPositiveTests(List<Podatek> podatki) {
   var result = podatki.map((podatki) => podatki.positiveTests);
   return result;
 }
-Iterable<int> getDeceased(List<Podatek> podatki){
+
+Iterable<int> getDeceased(List<Podatek> podatki) {
   var result = podatki.map((podatki) => podatki.deceased);
   return result;
 }
-Iterable<int> getInHospital(List<Podatek> podatki){
+
+Iterable<int> getInHospital(List<Podatek> podatki) {
   var result = podatki.map((podatki) => podatki.inHospital);
   return result;
 }
-Iterable<int> getInICU(List<Podatek> podatki){
+
+Iterable<int> getInICU(List<Podatek> podatki) {
   var result = podatki.map((podatki) => podatki.inICU);
   return result;
 }
 
-Iterable<int> getOutOfHospital(List<Podatek> podatki){
+Iterable<int> getOutOfHospital(List<Podatek> podatki) {
   var result = podatki.map((podatki) => podatki.outOfHospital);
   return result;
 }
 
-Iterable<int> get7DaysMean(List<Podatek> podatki){
+Iterable<int> get7DaysMean(List<Podatek> podatki) {
   //TODO: to popravi!!!
   var result = podatki.map((podatki) => podatki.positiveTests);
-  var finalList = [];
-  for(int i  = 0; i < result.length; i++){
-    finalList.add(get_seven_days_mean(result,i));
+  var finalList = Iterable.generate(result.length);
+  for (int i = 0; i < result.length; i++) {
+    // finalList[i] = (get_seven_days_mean(result,i));<w
   }
   return Iterable.castFrom(finalList);
 }
 
-int get_seven_days_mean(List<int> podatki,int indeks) {
+// ignore: non_constant_identifier_names
+int get_seven_days_mean(List<int> podatki, int indeks) {
   if (_isInitialized) {
     if (indeks < 8) {
       return podatki.elementAt(indeks);
     }
     int mean = 0;
-    for (int i = podatki.elementAt(indeks) - 1; i > podatki.elementAt(indeks) - 8; i--) {
+    for (int i = podatki.elementAt(indeks) - 1;
+        i > podatki.elementAt(indeks) - 8;
+        i--) {
       mean += podatki.elementAt(i);
     }
     return mean ~/ 7;
@@ -186,57 +193,25 @@ String getDate() {
       now.minute.toString();
 }
 
-Widget _kartica(
-        String naslov, Iterable<int> podatki, Color barva, BuildContext context) =>
-    InkWell(
-        onTap: () {
-          showGeneralDialog(
-            context: context,
-            barrierLabel: "Hello there",
-            barrierDismissible: true,
-            transitionBuilder: _buildNewTransition,
-            transitionDuration: Duration(milliseconds: 400), //This is time
-            barrierColor:
-                Colors.black.withOpacity(0.3), // Add this property is color
-            pageBuilder: (BuildContext context, Animation animation,
-                Animation secondaryAnimation) {
-              return Center(
-                child: Material(
-                  child: Container(
-                    color: Colors.black.withOpacity(animation.value),
-                    child: Container(
-                      width: MediaQuery.of(context).size.width-10,
-                      height: MediaQuery.of(context).size.height/2,
-                      child: Column(
-                        children: [
-                          SfSparkAreaChart(
-                            color: barva,
-                            data: podatki.toList(),
-                          )
-                        ],
-                      ),
-                      )
-                    )
-                  ),
-              );
-            },
-          );
-        },
-        child: Card(
-          elevation: 4,
-          child: Column(children: [
-            Align(
-              child: Text(
-                naslov,
-                style: TextStyle(fontSize: 20, color: barva),
-              ),
-            ),
-            Align(
-              child: Text(podatki.last.toString(),
-                  style: TextStyle(fontSize: 35, color: barva)),
+Widget _kartica(String naslov, Iterable<int> podatki, Color barva,
+        BuildContext context) =>
+    Card(
+        elevation: 4,
+        child: ExpansionTile(
+          title: Text(
+            naslov,
+            style: TextStyle(fontSize: 20, color: barva),
+          ),
+          subtitle: Text(podatki.last.toString(),
+              style: TextStyle(fontSize: 35, color: barva)),
+          children: <Widget>[
+            SfSparkAreaChart(
+              color: barva,
+              data: podatki.toList(),
             )
-          ]),
-        ));
+          ],
+        ),
+      );
 
 Widget _buildNewTransition(
   BuildContext context,
