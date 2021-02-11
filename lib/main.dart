@@ -117,44 +117,40 @@ Widget _listIzKartic(List<Podatek> podatki, BuildContext context) =>
       ),
     ]);
 
-Iterable<int> getPerformedTests(List<Podatek> podatki) {
+List<int> getPerformedTests(List<Podatek> podatki) {
   var result = podatki.map((podatki) => podatki.performedTests);
-  return result;
+  return result.toList();
 }
 
-Iterable<int> getPositiveTests(List<Podatek> podatki) {
+List<int> getPositiveTests(List<Podatek> podatki) {
   var result = podatki.map((podatki) => podatki.positiveTests);
-  return result;
+  return result.toList();
 }
 
-Iterable<int> getDeceased(List<Podatek> podatki) {
+List<int> getDeceased(List<Podatek> podatki) {
   var result = podatki.map((podatki) => podatki.deceased);
-  return result;
+  return result.toList();
 }
 
-Iterable<int> getInHospital(List<Podatek> podatki) {
+List<int> getInHospital(List<Podatek> podatki) {
   var result = podatki.map((podatki) => podatki.inHospital);
-  return result;
+  return result.toList();
 }
 
-Iterable<int> getInICU(List<Podatek> podatki) {
+List<int> getInICU(List<Podatek> podatki) {
   var result = podatki.map((podatki) => podatki.inICU);
-  return result;
+  return result.toList();
 }
 
-Iterable<int> getOutOfHospital(List<Podatek> podatki) {
+List<int> getOutOfHospital(List<Podatek> podatki) {
   var result = podatki.map((podatki) => podatki.outOfHospital);
-  return result;
+  return result.toList();
 }
 
-Iterable<int> get7DaysMean(List<Podatek> podatki) {
+List<int> get7DaysMean(List<Podatek> podatki) {
   //TODO: to popravi!!!
   var result = podatki.map((podatki) => podatki.positiveTests);
-  var finalList = Iterable.generate(result.length);
-  for (int i = 0; i < result.length; i++) {
-    // finalList[i] = (get_seven_days_mean(result,i));<w
-  }
-  return Iterable.castFrom(finalList);
+  return result.toList();
 }
 
 // ignore: non_constant_identifier_names
@@ -193,38 +189,29 @@ String getDate() {
       now.minute.toString();
 }
 
-Widget _kartica(String naslov, Iterable<int> podatki, Color barva,
-        BuildContext context) =>
+Widget _kartica(
+        String naslov, List<int> podatki, Color barva, BuildContext context) =>
     Card(
-        elevation: 4,
-        child: ExpansionTile(
-          title: Text(
-            naslov,
-            style: TextStyle(fontSize: 20, color: barva),
-          ),
-          subtitle: Text(podatki.last.toString(),
-              style: TextStyle(fontSize: 35, color: barva)),
-          children: <Widget>[
-            SfSparkAreaChart(
-              color: barva,
-              data: podatki.toList(),
-            )
-          ],
+      elevation: 4,
+      child: ExpansionTile(
+        title: Text(
+          naslov,
+          style: TextStyle(fontSize: 20, color: barva),
         ),
-      );
+        subtitle: Text(podatki.last.toString(),
+            style: TextStyle(fontSize: 35, color: barva)),
+        children: <Widget>[
+          SfSparkAreaChart(
+            marker:
+                SparkChartMarker(displayMode: SparkChartMarkerDisplayMode.high),
+            color: barva,
+            data: podatki.toList(),
+            trackball: SparkChartTrackball(
+              borderWidth: 1,
+              borderColor: barva,
 
-Widget _buildNewTransition(
-  BuildContext context,
-  Animation<double> animation,
-  Animation<double> secondaryAnimation,
-  Widget child,
-) {
-  return ScaleTransition(
-    scale: CurvedAnimation(
-      parent: animation,
-      curve: Curves.linear,
-      reverseCurve: Curves.fastOutSlowIn,
-    ),
-    child: child,
-  );
-}
+            ),
+          )
+        ],
+      ),
+    );
