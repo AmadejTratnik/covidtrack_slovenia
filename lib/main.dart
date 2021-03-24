@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:ui';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -93,19 +92,21 @@ class _PodatkiState extends State {
 
 Widget _listIzKartic(List<Podatek> podatki, BuildContext context) =>
     ListView(children: [
-      _kartica('Dnevno število testiranj PCR:', getPerformedTests(podatki),
+      _kartica('', 'Dnevno število testiranj PCR:', getPerformedTests(podatki),
           Colors.green, context),
-      _kartica('Dnevno število potrjenih primerov:', getPositiveTests(podatki),
-          Colors.red, context),
-      _kartica('Dnevno število umrlih oseb:', getDeceased(podatki),
+      _kartica('', 'Dnevno število potrjenih primerov:',
+          getPositiveTests(podatki), Colors.red, context),
+      _kartica('%', 'Razmerje pozitivnih primerov in testov:',
+          getTestsRatio(podatki), Colors.blueGrey[700], context),
+      _kartica('', 'Dnevno število umrlih oseb:', getDeceased(podatki),
           Colors.black, context),
-      _kartica('Skupno število hospitaliziranih oseb na posamezen dan:',
+      _kartica('', 'Skupno število hospitaliziranih oseb na posamezen dan:',
           getInHospital(podatki), Colors.blue, context),
-      _kartica('Skupno število oseb na intenzivni negi na posamezen dan:',
+      _kartica('', 'Skupno število oseb na intenzivni negi na posamezen dan:',
           getInICU(podatki), Colors.yellow[800], context),
-      _kartica('Dnevno število odpuščenih oseb iz bolnišnice:',
+      _kartica('', 'Dnevno število odpuščenih oseb iz bolnišnice:',
           getOutOfHospital(podatki), Colors.pink[800], context),
-      _kartica('Povprečje potrjenih primerov v zadnjih 7 dneh:',
+      _kartica('', 'Povprečje potrjenih primerov v zadnjih 7 dneh:',
           get7DaysMean(podatki), Colors.teal, context),
       Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -137,6 +138,23 @@ List<int> getInHospital(List<Podatek> podatki) {
   return result.toList();
 }
 
+List<int> getTestsRatio(List<Podatek> podatki) {
+  List<int> performed = podatki.map((podatki) => podatki.performedTests).toList();
+  List<int> positive = podatki.map((podatki) => podatki.positiveTests).toList();
+  List<int> result = [];
+  for (int i = 0; i < performed.length; i++) {
+    if (performed[i] != null && positive[i] != null) {
+      double percent = positive[i]/performed[i];
+      percent = percent * 100;
+      int f = percent.round();
+      result.add(f);
+    } else {
+      result.add(0);
+    }
+  }
+  return result;
+}
+
 List<int> getInICU(List<Podatek> podatki) {
   var result = podatki.map((podatki) => podatki.inICU);
   return result.toList();
@@ -164,15 +182,15 @@ List<int> get7DaysMean(List<Podatek> podatki) {
           int k = j - 7;
           int mean = 0;
           while (j > k) {
-            if(mid.elementAt(j) != null){
+            if (mid.elementAt(j) != null) {
               mean += (mid.elementAt(j));
-            }           
+            }
             j -= 1;
           }
-          mean = mean~/7;
+          mean = mean ~/ 7;
           result.add(mean);
         }
-      } 
+      }
     }
   }
 
@@ -215,8 +233,8 @@ String getDate() {
       now.minute.toString();
 }
 
-Widget _kartica(
-        String naslov, List<int> podatki, Color barva, BuildContext context) =>
+Widget _kartica(String dodatek, String naslov, List<int> podatki, Color barva,
+        BuildContext context) =>
     Card(
       elevation: 4,
       child: ExpansionTile(
@@ -224,7 +242,7 @@ Widget _kartica(
           naslov,
           style: TextStyle(fontSize: 20, color: barva),
         ),
-        subtitle: Text(podatki.last.toString(),
+        subtitle: Text(podatki.last.toString() + dodatek,
             style: TextStyle(fontSize: 35, color: barva)),
         children: <Widget>[
           SfSparkAreaChart(
