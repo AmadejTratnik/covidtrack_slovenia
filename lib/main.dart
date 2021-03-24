@@ -1,7 +1,7 @@
+import 'dart:math';
 import 'dart:ui';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 import 'API.dart';
 import 'Podatki.dart';
 import 'package:syncfusion_flutter_charts/sparkcharts.dart';
@@ -148,9 +148,35 @@ List<int> getOutOfHospital(List<Podatek> podatki) {
 }
 
 List<int> get7DaysMean(List<Podatek> podatki) {
-  //TODO: to popravi!!!
-  var result = podatki.map((podatki) => podatki.positiveTests);
-  return result.toList();
+  List<int> result = [];
+
+  if (_isInitialized) {
+    List<int> mid = (podatki.map((podatki) => podatki.positiveTests)).toList();
+
+    for (int i = 0; i < mid.length; i++) {
+      if (mid.elementAt(i) == null) {
+        result.add(0);
+      } else {
+        if (i < 7) {
+          result.add(0);
+        } else {
+          int j = i;
+          int k = j - 7;
+          int mean = 0;
+          while (j > k) {
+            if(mid.elementAt(j) != null){
+              mean += (mid.elementAt(j));
+            }           
+            j -= 1;
+          }
+          mean = mean~/7;
+          result.add(mean);
+        }
+      } 
+    }
+  }
+
+  return result;
 }
 
 // ignore: non_constant_identifier_names
@@ -188,6 +214,7 @@ String getDate() {
       nicla +
       now.minute.toString();
 }
+
 Widget _kartica(
         String naslov, List<int> podatki, Color barva, BuildContext context) =>
     Card(
@@ -208,7 +235,6 @@ Widget _kartica(
             trackball: SparkChartTrackball(
               borderWidth: 1,
               borderColor: barva,
-
             ),
           )
         ],
