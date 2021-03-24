@@ -188,7 +188,6 @@ String getDate() {
       nicla +
       now.minute.toString();
 }
-
 Widget _kartica(
         String naslov, List<int> podatki, Color barva, BuildContext context) =>
     Card(
