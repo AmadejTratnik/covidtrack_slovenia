@@ -94,21 +94,31 @@ class _PodatkiState extends State {
 Widget _listIzKartic(List<Podatek> podatki, BuildContext context) =>
     ListView(children: [
       _kartica('', 'Dnevno število testiranj PCR:', getPerformedTests(podatki),
-          Colors.green, context),
+          Colors.green, context, getDates(podatki)),
       _kartica('', 'Dnevno število potrjenih primerov:',
-          getPositiveTests(podatki), Colors.red, context),
-      _kartica('%', 'Razmerje pozitivnih primerov in testov:',
-          getTestsRatio(podatki), Colors.blueGrey[700], context),
+          getPositiveTests(podatki), Colors.red, context, getDates(podatki)),
+      _kartica(
+          '%',
+          'Razmerje pozitivnih primerov in testov:',
+          getTestsRatio(podatki),
+          Colors.blueGrey[700],
+          context,
+          getDates(podatki)),
       _kartica('', 'Dnevno število umrlih oseb:', getDeceased(podatki),
-          Colors.black, context),
+          Colors.black, context, getDates(podatki)),
       _kartica('', 'Skupno število hospitaliziranih oseb na posamezen dan:',
-          getInHospital(podatki), Colors.blue, context),
+          getInHospital(podatki), Colors.blue, context, getDates(podatki)),
       _kartica('', 'Skupno število oseb na intenzivni negi na posamezen dan:',
-          getInICU(podatki), Colors.yellow[800], context),
-      _kartica('', 'Dnevno število odpuščenih oseb iz bolnišnice:',
-          getOutOfHospital(podatki), Colors.pink[800], context),
+          getInICU(podatki), Colors.yellow[800], context, getDates(podatki)),
+      _kartica(
+          '',
+          'Dnevno število odpuščenih oseb iz bolnišnice:',
+          getOutOfHospital(podatki),
+          Colors.pink[800],
+          context,
+          getDates(podatki)),
       _kartica('', 'Povprečje potrjenih primerov v zadnjih 7 dneh:',
-          get7DaysMean(podatki), Colors.teal, context),
+          get7DaysMean(podatki), Colors.teal, context, getDates(podatki)),
       Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.max,
@@ -164,6 +174,19 @@ List<int> getInICU(List<Podatek> podatki) {
 
 List<int> getOutOfHospital(List<Podatek> podatki) {
   var result = podatki.map((podatki) => podatki.outOfHospital);
+  return result.toList();
+}
+
+List<DateTime> getDates(List<Podatek> podatki) {
+  var years = podatki.map((podatki) => podatki.year);
+  var months = podatki.map((podatki) => podatki.month);
+  var days = podatki.map((podatki) => podatki.day);
+  List<DateTime> result = [];
+  for (int i = 0; i < podatki.length; i++) {
+    DateTime date =
+        DateTime(years.elementAt(i), months.elementAt(i), days.elementAt(i));
+    result.add(date);
+  }
   return result.toList();
 }
 
@@ -236,7 +259,7 @@ String getDate() {
 }
 
 Widget _kartica(String dodatek, String naslov, List<int> podatki, Color barva,
-        BuildContext context) =>
+        BuildContext context, List<DateTime> dates) =>
     Card(
       elevation: 4,
       child: ExpansionTile(
@@ -246,52 +269,76 @@ Widget _kartica(String dodatek, String naslov, List<int> podatki, Color barva,
         ),
         subtitle: Text(podatki.last.toString() + dodatek,
             style: TextStyle(fontSize: 35, color: barva)),
-        children: <Widget>[
-          SfSparkAreaChart(
-            marker:
-                SparkChartMarker(displayMode: SparkChartMarkerDisplayMode.high),
-            color: barva,
-            data: podatki.toList(),
-            trackball: SparkChartTrackball(
-              borderWidth: 1,
-              borderColor: barva,
-            ),
-          )
-        ],
+        children: <Widget>[_cartesianChart(barva, context, podatki, dates)],
       ),
     );
 
-Widget _graf(Color barva, BuildContext context) => FractionallySizedBox(
-      widthFactor: 1,
-      heightFactor: 0.4,
-      child: Container(
-        child: SfCartesianChart(
-          primaryXAxis: CategoryAxis(),
-          primaryYAxis: NumericAxis(),
-          series: <ChartSeries>[
-            ColumnSeries<Data,String>(
-                dataSource: getColumnData(),
-                xValueMapper: (Data data,_) => data.x,
-                yValueMapper: (Data data,_) => data.y
-                ),
-          ],
-        ),
+Widget _sparkChart(Color barva, List<int> podatki) => SfSparkAreaChart(
+      marker: SparkChartMarker(displayMode: SparkChartMarkerDisplayMode.high),
+      color: barva,
+      data: podatki.toList(),
+      trackball: SparkChartTrackball(
+        borderWidth: 1,
+        borderColor: barva,
       ),
+    );
+
+// ignore: unused_element
+Widget _cartesianChart(Color barva, BuildContext context, List<int> podatki,
+        List<DateTime> dates) =>
+    // FractionallySizedBox(
+    //     widthFactor: 1,
+    //     heightFactor: 0.4,
+    //     child:
+    Container(
+      height: MediaQuery.of(context).size.width * 0.45,
+      child: SfCartesianChart(
+        primaryXAxis: DateTimeAxis(desiredIntervals: 10),
+        primaryYAxis: NumericAxis(),
+        trackballBehavior: TrackballBehavior(
+            enable: true,
+            activationMode: ActivationMode.singleTap,
+            shouldAlwaysShow: true,
+            tooltipSettings: InteractiveTooltip(format: 'point.x : point.y')),
+        series: <ChartSeries>[
+          ColumnSeries<Data, DateTime>(
+              color: barva,
+              dataSource: getColumnData(podatki, dates),
+              xValueMapper: (Data data, _) => data.date,
+              yValueMapper: (Data data, _) => data.y),
+        ],
+      ),
+      // ),
     );
 
 class Data {
-  String x;
-  double y;
-
-  Data(this.x, this.y);
+  DateTime date;
+  int y;
+  Data(this.date, this.y);
 }
 
-dynamic getColumnData() {
-  List<Data> columnData = <Data>[
-    Data("ena", 1),
-    Data("dva", 2),
-    Data("tri", 3),
-    Data("stiri", 4),
-  ];
+dynamic getColumnData(List<int> podatki, List<DateTime> dates) {
+  List<Data> columnData = <Data>[];
+
+  for (int i = 0; i < podatki.length; i++) {
+    Data x = Data(dates.elementAt(i), podatki.elementAt(i));
+    columnData.add(x);
+  }
   return columnData;
 }
+
+// dynamic getColumnData() {
+//   List<Data> columnData = <Data>[
+//     Data(DateTime(2011, 1, 1), 123),
+//     Data(DateTime(2011, 1, 1), 123),
+//     Data(DateTime(2011, 1, 1), 123),
+//     Data(DateTime(2011, 1, 1), 123),
+//     Data(DateTime(2011, 1, 1), 123),
+//     Data(DateTime(2011, 1, 1), 123),
+//     Data(DateTime(2011, 1, 1), 123),
+//     Data(DateTime(2011, 1, 1), 123),
+//     Data(DateTime(2011, 1, 1), 123),
+//     Data(DateTime(2011, 1, 1), 123),
+//   ];
+//   return columnData;
+// }
