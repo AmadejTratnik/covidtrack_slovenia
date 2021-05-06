@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'API.dart';
 import 'Podatki.dart';
 import 'package:syncfusion_flutter_charts/sparkcharts.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 bool _isInitialized = false;
 
@@ -139,12 +140,13 @@ List<int> getInHospital(List<Podatek> podatki) {
 }
 
 List<int> getTestsRatio(List<Podatek> podatki) {
-  List<int> performed = podatki.map((podatki) => podatki.performedTests).toList();
+  List<int> performed =
+      podatki.map((podatki) => podatki.performedTests).toList();
   List<int> positive = podatki.map((podatki) => podatki.positiveTests).toList();
   List<int> result = [];
   for (int i = 0; i < performed.length; i++) {
     if (performed[i] != null && positive[i] != null) {
-      double percent = positive[i]/performed[i];
+      double percent = positive[i] / performed[i];
       percent = percent * 100;
       int f = percent.round();
       result.add(f);
@@ -258,3 +260,38 @@ Widget _kartica(String dodatek, String naslov, List<int> podatki, Color barva,
         ],
       ),
     );
+
+Widget _graf(Color barva, BuildContext context) => FractionallySizedBox(
+      widthFactor: 1,
+      heightFactor: 0.4,
+      child: Container(
+        child: SfCartesianChart(
+          primaryXAxis: CategoryAxis(),
+          primaryYAxis: NumericAxis(),
+          series: <ChartSeries>[
+            ColumnSeries<Data,String>(
+                dataSource: getColumnData(),
+                xValueMapper: (Data data,_) => data.x,
+                yValueMapper: (Data data,_) => data.y
+                ),
+          ],
+        ),
+      ),
+    );
+
+class Data {
+  String x;
+  double y;
+
+  Data(this.x, this.y);
+}
+
+dynamic getColumnData() {
+  List<Data> columnData = <Data>[
+    Data("ena", 1),
+    Data("dva", 2),
+    Data("tri", 3),
+    Data("stiri", 4),
+  ];
+  return columnData;
+}
