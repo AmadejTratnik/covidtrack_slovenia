@@ -33,6 +33,8 @@ class _PodatkiState extends State {
   // ignore: deprecated_member_use
   var podatki = new List<Podatek>();
 
+  List<DateTime> dates = [];
+
   Future<void> _getStats() async {
     API.getStats().then((response) {
       setState(() {
@@ -41,6 +43,7 @@ class _PodatkiState extends State {
         if (podatki != null || podatki.length != 0) {
           podatki.removeLast();
         }
+        dates = getDates(podatki);
         _isInitialized = true;
       });
     });
@@ -74,7 +77,7 @@ class _PodatkiState extends State {
           backgroundColor: Colors.white,
         ),
         backgroundColor: Colors.white,
-        body: _listIzKartic(podatki, context),
+        body: _listIzKartic(podatki, context, dates),
       );
     } else {
       return new Scaffold(
@@ -91,34 +94,25 @@ class _PodatkiState extends State {
   }
 }
 
-Widget _listIzKartic(List<Podatek> podatki, BuildContext context) =>
+Widget _listIzKartic(
+        List<Podatek> podatki, BuildContext context, List<DateTime> dates) =>
     ListView(children: [
       _kartica('', 'Dnevno število testiranj PCR:', getPerformedTests(podatki),
-          Colors.green, context, getDates(podatki)),
+          Colors.green, context, dates),
       _kartica('', 'Dnevno število potrjenih primerov:',
-          getPositiveTests(podatki), Colors.red, context, getDates(podatki)),
-      _kartica(
-          '%',
-          'Razmerje pozitivnih primerov in testov:',
-          getTestsRatio(podatki),
-          Colors.blueGrey[700],
-          context,
-          getDates(podatki)),
+          getPositiveTests(podatki), Colors.red, context, dates),
+      _kartica('%', 'Razmerje pozitivnih primerov in testov:',
+          getTestsRatio(podatki), Colors.blueGrey[700], context, dates),
       _kartica('', 'Dnevno število umrlih oseb:', getDeceased(podatki),
-          Colors.black, context, getDates(podatki)),
+          Colors.black, context, dates),
       _kartica('', 'Skupno število hospitaliziranih oseb na posamezen dan:',
-          getInHospital(podatki), Colors.blue, context, getDates(podatki)),
+          getInHospital(podatki), Colors.blue, context, dates),
       _kartica('', 'Skupno število oseb na intenzivni negi na posamezen dan:',
-          getInICU(podatki), Colors.yellow[800], context, getDates(podatki)),
-      _kartica(
-          '',
-          'Dnevno število odpuščenih oseb iz bolnišnice:',
-          getOutOfHospital(podatki),
-          Colors.pink[800],
-          context,
-          getDates(podatki)),
+          getInICU(podatki), Colors.yellow[800], context, dates),
+      _kartica('', 'Dnevno število odpuščenih oseb iz bolnišnice:',
+          getOutOfHospital(podatki), Colors.pink[800], context, dates),
       _kartica('', 'Povprečje potrjenih primerov v zadnjih 7 dneh:',
-          get7DaysMean(podatki), Colors.teal, context, getDates(podatki)),
+          get7DaysMean(podatki), Colors.teal, context, dates),
       Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.max,
