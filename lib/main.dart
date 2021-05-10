@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   build(context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: true,
+      debugShowCheckedModeBanner: false,
       title: 'Covid-19 sledilnik',
       theme: ThemeData(
         primaryColor: Colors.white,
@@ -86,6 +86,7 @@ class _PodatkiState extends State {
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  //Image.asset('assets/images/covid.png'),
                   Text('Nalaganje podatkov...'),
                   CircularProgressIndicator()
                 ]),
