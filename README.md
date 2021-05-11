@@ -1,4 +1,4 @@
-# covidtrack_slovenia
+# Covid-19 sledilnik
 
 ![icon](./android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png)
 
