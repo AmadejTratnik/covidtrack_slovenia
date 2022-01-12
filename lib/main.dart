@@ -83,13 +83,12 @@ class _PodatkiState extends State {
       return new Scaffold(
           backgroundColor: Colors.white,
           body: Center(
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  //Image.asset('assets/images/covid.png'),
-                  Text('Nalaganje podatkov...'),
-                  CircularProgressIndicator()
-                ]),
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              //Image.asset('assets/images/covid.png'),
+              Text('Nalaganje podatkov...'),
+              CircularProgressIndicator()
+            ]),
           ));
     }
   }
@@ -264,9 +263,35 @@ Widget _kartica(String dodatek, String naslov, List<int> podatki, Color barva,
         ),
         subtitle: Text(podatki.last.toString() + dodatek,
             style: TextStyle(fontSize: 35, color: barva)),
-        children: <Widget>[_cartesianChart(barva, context, podatki, dates)],
+        children: <Widget>[
+          _cartesianChart(barva, context, podatki, dates),
+         // _timeButtons(context,barva)
+        ],
       ),
     );
+
+Widget _timeButtons(BuildContext context,Color color) => Container(
+      child: Row(
+        children: <Widget>[
+          _timeButton(Text('Celotno obdobje'), color),
+          _timeButton(Text('Mesečno obdobje'), color),
+          _timeButton(Text('Tedensko obdobje'), color),
+        ],
+      ),
+    );
+
+Widget _timeButton(Text name, Color color) =>  Expanded(
+            child: Center(
+            child: ElevatedButton(
+                onPressed: () {
+                  print(name);
+                },
+                child: name,
+                style: ElevatedButton.styleFrom(
+                  primary: color,
+                ),
+                ),
+          ));
 
 Widget _sparkChart(Color barva, List<int> podatki) => SfSparkAreaChart(
       marker: SparkChartMarker(displayMode: SparkChartMarkerDisplayMode.high),
